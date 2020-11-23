@@ -9,11 +9,16 @@ import UIKit
 import GoogleMaps
 import GooglePlaces
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, GMSMapViewDelegate {
+
+    // challenge task #1
+    var placesClient: GMSPlacesClient!
 
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+        // challenge task #1
+        placesClient = GMSPlacesClient.shared()
         
         // setup a map to be zoomed into the GU campus
         let guLatitude = 47.6670357
@@ -44,11 +49,40 @@ class ViewController: UIViewController {
         
         // challenge tasks
         // 1. set up map view delegation so your view controller knows when the user taps their my location blue dot
+        mapView.delegate = self
         // 2. use the Google Places SDK for iOS, when the user taps their blue dot, show an alert with the current place name and address
         
         view = mapView
     }
 
+    // challenge task #1
+    func mapView(_ mapView: GMSMapView, didTapMyLocation location: CLLocationCoordinate2D) {
+        print("tapped")
+        // challenge task #2
+        getPlace()
+    }
+    
+    // challenge task #2
+    func getPlace() {
+        let placeFields: GMSPlaceField = [.name, .formattedAddress]
+            placesClient.findPlaceLikelihoodsFromCurrentLocation(withPlaceFields: placeFields) { (placeLikelihoods, error) in
+
+
+              guard error == nil else {
+                print("Current place error: \(error?.localizedDescription ?? "")")
+                return
+              }
+
+                guard let place = placeLikelihoods?.first?.place, let name = place.name, let address = place.formattedAddress else {
+                print("error")
+                return
+              }
+
+            let alert = UIAlertController(title: "My Location Tapped", message: "You are at \(name) \(address)", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Okay", style: .default, handler: nil))
+            self.present(alert, animated: true, completion: nil)
+        }
+    }
 
 }
 
